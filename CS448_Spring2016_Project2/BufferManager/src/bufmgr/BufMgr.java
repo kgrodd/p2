@@ -1,3 +1,17 @@
+package bufmgr;
+
+import global.Convert;
+import global.GlobalConst;
+import global.Minibase;
+import global.Page;
+import global.PageId;
+
+import java.io.File;
+import java.io.IOException;
+import java.io.RandomAccessFile;
+
+import chainexception.ChainException;
+
 public class BufMgr {
 	private String rP;
 	private int lAS;
@@ -14,7 +28,7 @@ public class BufMgr {
 	can safely ignore this parameter as you will implement only one policy)
 	*/
 	public BufMgr(int numbufs, int lookAheadSize, String replacementPolicy) {
-		this.frames = new frames[numbufs];
+		this.frames = new Page [numbufs];
 		this.rP = "LFU";
 		this .lAS = lookAheadSize;
 		this.numBufs = numbufs;
