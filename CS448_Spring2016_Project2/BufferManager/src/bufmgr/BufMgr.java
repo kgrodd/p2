@@ -1,4 +1,8 @@
 public class BufMgr {
+	private String rP;
+	private int lAS;
+	private int numBufs;
+	private Page[] frames;
 	/**
 	* Create the BufMgr object.
 	* Allocate pages (frames) for the buffer pool in main memory and* make the buffer manage aware that the replacement policy is
@@ -9,7 +13,12 @@ public class BufMgr {
 	* @param replacementPolicy Name of the replacement policy, that parameter will be set to "LFU" (you
 	can safely ignore this parameter as you will implement only one policy)
 	*/
-	public BufMgr(int numbufs, int lookAheadSize, String replacementPolicy) {};
+	public BufMgr(int numbufs, int lookAheadSize, String replacementPolicy) {
+		this.frames = new frames[numbufs];
+		this.rP = "LFU";
+		this .lAS = lookAheadSize;
+		this.numBufs = numbufs;
+	};
 	/**
 	* Pin a page.
 	* First check if this page is already in the buffer pool.
@@ -83,7 +92,9 @@ public class BufMgr {
 	/**
 	* Returns the total number of buffer frames.
 	*/
-	public int getNumBuffers() {}
+	public int getNumBuffers() {
+		return this.numBufs;
+	}
 	/**
 	* Returns the total number of unpinned buffer frames.
 	*/
