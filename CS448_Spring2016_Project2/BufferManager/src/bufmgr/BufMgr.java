@@ -29,10 +29,11 @@ public class BufMgr {
 	*/
 	public BufMgr(int numbufs, int lookAheadSize, String replacementPolicy) {
 		this.frames = new Page [numbufs];
-		this.rP = "LFU";
+		this.rP = replacementPolicy;
 		this .lAS = lookAheadSize;
 		this.numBufs = numbufs;
 	};
+
 	/**
 	* Pin a page.
 	* First check if this page is already in the buffer pool.
@@ -51,7 +52,9 @@ public class BufMgr {
 	* @param page the pointer point to the page.
 	* @param emptyPage true (empty page); false (non-empty page)
 	*/
-	public void pinPage(PageId pageno, Page page, boolean emptyPage) {};
+	public void pinPage(PageId pageno, Page page, boolean emptyPage) {
+		open pi
+	};
 	/**
 	* Unpin a page specified by a pageId.
 	* This method should be called with dirty==true if the client has
@@ -82,7 +85,9 @@ public class BufMgr {
 	*
 	* @return the first page id of the new pages.__ null, if error.
 	*/
-	public PageId newPage(Page firstpage, int howmany) {};
+	public PageId newPage(Page firstpage, int howmany) {
+		return null;	
+	};
 	/**
 	* This method should be called to delete a page that is on disk.
 	* This routine must call the method in diskmgr package to
@@ -112,5 +117,7 @@ public class BufMgr {
 	/**
 	* Returns the total number of unpinned buffer frames.
 	*/
-	public int getNumUnpinned() {}
+	public int getNumUnpinned() {	
+		return 0;	
+	}
 }
