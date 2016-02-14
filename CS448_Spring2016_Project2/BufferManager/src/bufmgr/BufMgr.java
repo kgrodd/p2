@@ -12,11 +12,14 @@ import java.io.RandomAccessFile;
 
 import chainexception.ChainException;
 
+
+
 public class BufMgr {
 	private String rP;
 	private int lAS;
 	private int numBufs;
 	private Page[] frames;
+	private int[][] pin_dirty;
 	/**
 	* Create the BufMgr object.
 	* Allocate pages (frames) for the buffer pool in main memory and* make the buffer manage aware that the replacement policy is
@@ -32,6 +35,7 @@ public class BufMgr {
 		this.rP = replacementPolicy;
 		this .lAS = lookAheadSize;
 		this.numBufs = numbufs;
+		this.pin_dirty = new int[numbufs][2];
 	};
 
 	/**
@@ -53,8 +57,8 @@ public class BufMgr {
 	* @param emptyPage true (empty page); false (non-empty page)
 	*/
 	public void pinPage(PageId pageno, Page page, boolean emptyPage) {
-		open pi
-	};
+		;	
+	}
 	/**
 	* Unpin a page specified by a pageId.
 	* This method should be called with dirty==true if the client has
