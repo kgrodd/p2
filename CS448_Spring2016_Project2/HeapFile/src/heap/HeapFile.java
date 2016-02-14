@@ -1,13 +1,13 @@
-package heapfile;
+/* HeapFile.java */
+package heap;
 
 import global.Convert;
 import global.GlobalConst;
 import global.Minibase;
 import global.Page;
 import global.PageId;
-import heap.HeapFile;
-import heap.HeapScan;
-import heap.Tuple;
+import global.RID;
+
 
 import java.io.File;
 import java.io.IOException;
@@ -21,20 +21,32 @@ public class HeapFile{
 	public HeapFile(String name){}
 	
 	/*Inserts a new record into the flie and returns its RID*/
-	public RID insertRecord(byte[] record){}
+	public RID insertRecord(byte[] record){
+		return null;
+	}
 	
 	/* */
-	public Tuple getRecord(RID rid){}
+	public Tuple getRecord(RID rid){
+		return null;
+	}
 	
 	/*Updates the specified record in the heap file */
-	public void updateRecord(RID rid, Tuple newRecord){}
+	public boolean updateRecord(RID rid, Tuple newRecord){
+		return true;
+	}
 	
 	/* Deletes the specified record from the Heap file*/
-	public void deleteRecord(RID rid){}
+	public boolean deleteRecord(RID rid){
+		return true;
+	}
 	
 	/* gets the number of records in the file */
-	public int getRecCnt(){}
+	public int getRecCnt(){
+		return 0;
+	}
 	
 	/* Initiates a sequential scan of the heap file */
-	public HeapScan openScan(){}
+	public HeapScan openScan(){
+		return null;
+	}
 }
