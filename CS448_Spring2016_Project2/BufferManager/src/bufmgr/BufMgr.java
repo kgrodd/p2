@@ -84,7 +84,7 @@ public class BufMgr implements GlobalConst{
 						loc = i;
 				}
 			}
-System.out.println("location is " + loc);
+//System.out.println("location is " + loc);
 			if(loc == -1) {
 				throw new BufferPoolExceededException(null, "No Empty Frames to pin too");
 			}
@@ -106,7 +106,7 @@ System.out.println("location is " + loc);
 			if(this.bufDescr[loc].getPageId() != -1) {
 				try{
 					//hm.printHM();
-					System.out.println("pid to remove is " + bufDescr[loc].getPID());
+					//System.out.println("pid to remove is " + bufDescr[loc].getPID());
 					this.hm.remove(bufDescr[loc].getPID());	
 				} catch(ChainException c) {
 				
