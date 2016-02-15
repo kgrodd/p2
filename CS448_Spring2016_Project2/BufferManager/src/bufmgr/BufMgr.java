@@ -9,17 +9,20 @@ import global.PageId;
 import java.io.File;
 import java.io.IOException;
 import java.io.RandomAccessFile;
-
+import java.util.LinkedList;
 import chainexception.ChainException;
 
 
 
-public class BufMgr {
+public class BufMgr implements GlobalConst{
 	private String rP;
 	private int lAS;
 	private int numBufs;
-	private Page[] frames;
-	private int[][] pin_dirty;
+	private Page[] bufPool;
+	private Record[] bufDescr;
+	private HashMap hm;
+
+
 	/**
 	* Create the BufMgr object.
 	* Allocate pages (frames) for the buffer pool in main memory and* make the buffer manage aware that the replacement policy is
@@ -31,11 +34,21 @@ public class BufMgr {
 	can safely ignore this parameter as you will implement only one policy)
 	*/
 	public BufMgr(int numbufs, int lookAheadSize, String replacementPolicy) {
-		this.frames = new Page [numbufs];
+		this.bufPool = new Page [numbufs];
+		for(int i = 0; i < numbufs; i++) {
+			bufPool[i] = new Page();
+		}
+		
 		this.rP = replacementPolicy;
-		this .lAS = lookAheadSize;
+		this.lAS = lookAheadSize;
 		this.numBufs = numbufs;
-		this.pin_dirty = new int[numbufs][2];
+		
+		this.bufDescr = new Record[numbufs];
+		for(int i = 0; i < numbufs; i++) {
+			bufDescr[i] = new Record(null, 0, 0);
+		}
+		
+		this.hm = new HashMap();
 	};
 
 	/**
@@ -56,9 +69,38 @@ public class BufMgr {
 	* @param page the pointer point to the page.
 	* @param emptyPage true (empty page); false (non-empty page)
 	*/
-	public void pinPage(PageId pageno, Page page, boolean emptyPage) {
-		;	
+	public void pinPage(PageId pageno, Page page, boolean emptyPage) throws BufferPoolExceededException{
+			int loc = -1; //replacement location for when candidate is dirty
+			
+			for (int i = 0; i < this.numBufs; i++) {
+				if(pageno.equals(bufPool[i])) {
+					bufDescr[i].incPinCount();
+					bufPool[i] = page;
+					return;
+				} else if (bufDescr[i].getPinCount() == 0){
+					loc = i;
+				} 
+			}
+
+			if(loc == -1) {
+				throw new BufferPoolExceededException(null, "No Empty Frames to pin too");
+			}
+
+			if(bufDescr[loc].getDirtyBit() == 1) {
+				try{
+					Minibase.DiskManager.write_page(bufDescr[loc].getPageId(), bufPool[loc]);
+				} catch(Exception e) {}
+			}
+
+			try{
+				Minibase.DiskManager.read_page(pageno, page);
+			} catch(Exception e) {}
+
+			hm.remove(bufDescr[loc].getPageId());	
+			hm.add(new Node(pageno.pid, loc));		
 	}
+	
+
 	/**
 	* Unpin a page specified by a pageId.
 	* This method should be called with dirty==true if the client has
@@ -75,7 +117,12 @@ public class BufMgr {
 	* @param pageno page number in the Minibase.
 	* @param dirty the dirty bit of the frame
 	*/
-	public void unpinPage(PageId pageno, boolean dirty) {};/**
+	public void unpinPage(PageId pageno, boolean dirty) throws HashEntryNotFoundException {
+			try{}catch(Exception e){}
+	}
+
+
+	/**
 	* Allocate new pages.
 	* Call DB object to allocate a run of new pages and
 	* find a frame in the buffer pool for the first page
@@ -90,8 +137,11 @@ public class BufMgr {
 	* @return the first page id of the new pages.__ null, if error.
 	*/
 	public PageId newPage(Page firstpage, int howmany) {
+		
 		return null;	
-	};
+	}
+	
+
 	/**
 	* This method should be called to delete a page that is on disk.
 	* This routine must call the method in diskmgr package to
@@ -99,7 +149,11 @@ public class BufMgr {
 	*
 	* @param globalPageId the page number in the data base.
 	*/
-	public void freePage(PageId globalPageId) {};
+	public void freePage(PageId globalPageId) throws PagePinnedException {
+
+	};
+	
+
 	/**
 	* Used to flush a particular page of the buffer pool to disk.
 	* This method calls the write_page method of the diskmgr package.
@@ -107,17 +161,22 @@ public class BufMgr {
 	* @param pageid the page number in the database.
 	*/
 	public void flushPage(PageId pageid) {};
+	
+
 	/**
 	* Used to flush all dirty pages in the buffer pool to disk
 	*
 	*/
 	public void flushAllPages() {};
+	
+
 	/**
 	* Returns the total number of buffer frames.
 	*/
 	public int getNumBuffers() {
 		return this.numBufs;
 	}
+	
 	/**
 	* Returns the total number of unpinned buffer frames.
 	*/
