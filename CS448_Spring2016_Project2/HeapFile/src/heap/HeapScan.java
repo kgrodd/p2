@@ -4,6 +4,8 @@ package heap;
 import global.Convert;
 import global.GlobalConst;
 import global.Minibase;
+import global.Page;
+import global.PageId;
 import global.RID;
 
 public class HeapScan{
