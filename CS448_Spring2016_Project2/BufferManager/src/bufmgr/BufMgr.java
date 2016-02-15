@@ -36,7 +36,7 @@ public class BufMgr implements GlobalConst{
 	public BufMgr(int numbufs, int lookAheadSize, String replacementPolicy) {
 		this.bufPool = new Page [numbufs];
 		for(int i = 0; i < numbufs; i++) {
-			bufPool[i] = new Page();
+			this.bufPool[i] = new Page();
 		}
 		
 		this.rP = replacementPolicy;
@@ -45,7 +45,7 @@ public class BufMgr implements GlobalConst{
 		
 		this.bufDescr = new Record[numbufs];
 		for(int i = 0; i < numbufs; i++) {
-			bufDescr[i] = new Record(null, 0, 0);
+			this.bufDescr[i] = new Record(-1, 0, 0);
 		}
 		
 		this.hm = new HashMap();
@@ -70,34 +70,56 @@ public class BufMgr implements GlobalConst{
 	* @param emptyPage true (empty page); false (non-empty page)
 	*/
 	public void pinPage(PageId pageno, Page page, boolean emptyPage) throws BufferPoolExceededException{
+			//hm.printHM();
 			int loc = -1; //replacement location for when candidate is dirty
-			
+									//printBufPool();
 			for (int i = 0; i < this.numBufs; i++) {
-				if(pageno.equals(bufPool[i])) {
-					bufDescr[i].incPinCount();
-					bufPool[i] = page;
+//System.out.println("page no is " + pageno.pid + " other is " + bufDescr[i].getPageId());
+				if(pageno.pid == this.bufDescr[i].getPageId()) {
+					this.bufDescr[i].incPinCount();
+					this.bufPool[i] = page;
 					return;
-				} else if (bufDescr[i].getPinCount() == 0){
-					loc = i;
-				} 
+				} else if (this.bufDescr[i].getPinCount() == 0){
+					if(loc == -1)
+						loc = i;
+				}
 			}
-
+System.out.println("location is " + loc);
 			if(loc == -1) {
 				throw new BufferPoolExceededException(null, "No Empty Frames to pin too");
 			}
 
 			if(bufDescr[loc].getDirtyBit() == 1) {
 				try{
-					Minibase.DiskManager.write_page(bufDescr[loc].getPageId(), bufPool[loc]);
-				} catch(Exception e) {}
+					Minibase.DiskManager.write_page(bufDescr[loc].getPID(), bufPool[loc]);
+				} 
+				catch(ChainException e) {}
+				catch(IOException i) {}
 			}
 
 			try{
 				Minibase.DiskManager.read_page(pageno, page);
-			} catch(Exception e) {}
+			} 
+			catch(ChainException e) {}
+			catch(IOException i) {}
+						//printBufPool();
+			if(this.bufDescr[loc].getPageId() != -1) {
+				try{
+					//hm.printHM();
+					System.out.println("pid to remove is " + bufDescr[loc].getPID());
+					this.hm.remove(bufDescr[loc].getPID());	
+				} catch(ChainException c) {
+				
+				}
+			}
 
-			hm.remove(bufDescr[loc].getPageId());	
-			hm.add(new Node(pageno.pid, loc));		
+		
+			this.hm.add(new Node(pageno.pid, loc));	
+			this.bufPool[loc] = page;
+			this.bufDescr[loc] = new Record(pageno.pid, 1, 0);
+			//printBufPool();
+
+			//hm.printHM();
 	}
 	
 
@@ -117,8 +139,23 @@ public class BufMgr implements GlobalConst{
 	* @param pageno page number in the Minibase.
 	* @param dirty the dirty bit of the frame
 	*/
-	public void unpinPage(PageId pageno, boolean dirty) throws HashEntryNotFoundException {
-			try{}catch(Exception e){}
+	public void unpinPage(PageId pageno, boolean dirty) throws PageUnpinnedException {
+
+			//hm.printHM();
+			//System.out.println("this is pageno : " + pageno);
+			int frameNo = 0;
+			try{
+				frameNo = this.hm.getFrameNumber(pageno);
+			}
+			catch(ChainException e) {}
+
+			if(this.bufDescr[frameNo].getPinCount() == 0) {
+				throw new PageUnpinnedException(null, "Page not pinned");
+			}			
+					
+			this.bufDescr[frameNo].decPinCount();
+			this.bufDescr[frameNo].setDirtyBit(dirty);
+			//hm.printHM();
 	}
 
 
@@ -137,8 +174,41 @@ public class BufMgr implements GlobalConst{
 	* @return the first page id of the new pages.__ null, if error.
 	*/
 	public PageId newPage(Page firstpage, int howmany) {
+		PageId pageno = null;
+		try {
+			pageno = Minibase.DiskManager.allocate_page(howmany);
+		}
+		catch(ChainException e) {}
+		catch(IOException i) {}
 		
-		return null;	
+		int loc = -1; //replacement location for when candidate is dirty
+		
+		for (int i = 0; i < this.numBufs; i++) {
+			if (this.bufDescr[i].getPinCount() == 0){
+				loc = i;
+				break;
+			} 
+		}	
+
+		if(loc == -1) {
+			try {
+				Minibase.DiskManager.deallocate_page(pageno);
+			}
+			catch(ChainException e) {}
+
+			return null;	
+		}
+
+		//this.bufDescr[loc] = new Record(pageno.pid, 1, 0);
+		//this.bufPool[loc] = firstpage;
+
+		//this.hm.add(new Node(pageno.pid, loc));
+		try{
+			pinPage(pageno, firstpage, false);
+		} catch (ChainException c) {
+
+		}
+		return pageno;
 	}
 	
 
@@ -149,9 +219,11 @@ public class BufMgr implements GlobalConst{
 	*
 	* @param globalPageId the page number in the data base.
 	*/
-	public void freePage(PageId globalPageId) throws PagePinnedException {
-
-	};
+	public void freePage(PageId globalPageId) throws ChainException{
+		
+			Minibase.DiskManager.deallocate_page(globalPageId);
+		
+	}
 	
 
 	/**
@@ -160,14 +232,36 @@ public class BufMgr implements GlobalConst{
 	*
 	* @param pageid the page number in the database.
 	*/
-	public void flushPage(PageId pageid) {};
+	public void flushPage(PageId pageid) {
+		int frameNo = 0;
+		try {
+			this.hm.getFrameNumber(pageid);
+			Minibase.DiskManager.write_page(pageid, bufPool[frameNo]);
+		} 
+		catch(ChainException e) {}
+		catch(IOException i) {}
+
+		this.bufPool[frameNo] = new Page();
+		this.bufDescr[frameNo] = new Record(-1, 0, 0);
+
+		try {
+			this.hm.remove(pageid);
+		}
+		catch(ChainException e) {}
+	}
 	
 
 	/**
 	* Used to flush all dirty pages in the buffer pool to disk
 	*
 	*/
-	public void flushAllPages() {};
+	public void flushAllPages() {
+		for(int i = 0; i < this.numBufs; i++) {
+			if(this.bufDescr[i].getDirtyBit() == 1){
+				this.flushPage(this.bufDescr[i].getPID());
+			}
+		}
+	};
 	
 
 	/**
@@ -181,6 +275,23 @@ public class BufMgr implements GlobalConst{
 	* Returns the total number of unpinned buffer frames.
 	*/
 	public int getNumUnpinned() {	
-		return 0;	
+		int ct = 0;
+		Record r = null;
+		for(int i = 0; i < this.numBufs; i++) {
+			r = bufDescr[i];
+			if(r.getPinCount() == 0) 
+				ct++;
+			else {
+			//System.out.println("this is pinned : " + i + " page id is " + bufDescr[i].getPageId()) ;
+			}	
+		}
+		return ct;	
+	}
+
+	public void printBufPool() {
+		System.out.println("*******************Print BUFFPOOL***********************");
+		for (int i = 0; i < numBufs; i++) {
+			System.out.println("Page id : " + bufDescr[i].getPageId() + " Pin Count : "  + bufDescr[i].getPinCount() + " dirty bit : " + bufDescr[i].getDirtyBit());
+		}
 	}
 }

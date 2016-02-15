@@ -13,26 +13,38 @@ import java.io.RandomAccessFile;
 import chainexception.ChainException;
 
 public class Record {
-	private PageId pn;
+	private int pn;
 	private int pc;
 	private int db;
 
-	public Record(PageId pn, int pc, int db) {
+	public Record(int pn, int pc, int db) {
 		this.pn = pn;
 		this.pc = pc;
 		this.db = db;
 	}
 
-	public PageId getPageId() {
+	public int getPageId() {
 		return this.pn;
 	}
 
+	public PageId getPID() {
+		return new PageId(this.pn);
+	}
 	public int getPinCount() {
 		return this.pc;
 	}
 
 	public int getDirtyBit() {
 		return this.db;
+	}
+
+	public void setDirtyBit(boolean b) {
+		if(b) {
+			this.db = 1;
+		}	
+		else {
+			this.db = 0;
+		}
 	}
 
 	public void incPinCount() {

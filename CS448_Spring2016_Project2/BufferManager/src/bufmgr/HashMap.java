@@ -15,7 +15,7 @@ import java.util.ListIterator;
 
 import chainexception.ChainException;
 
-public class HashMap {
+public class HashMap implements GlobalConst {
 	private static final int HTSIZE = 53;
 	private LinkedList<Node>[] hm;
 
@@ -42,19 +42,56 @@ public class HashMap {
 		hm[hash(n.getPageNumber())].add(n);
 	}
 	
-	public Node remove(PageId pn) {
+	public Node remove(PageId pn) throws HashEntryNotFoundException {
 		if(pn == null) 
 			return null;
 		ListIterator<Node> li = hm[hash(pn.pid)].listIterator();
 		Node n  = null;
 
 		while(li.hasNext()) {
-			if(pn.pid == li.next().getPageNumber()) {
-				n = li.next();
+			if(pn.pid == (n = li.next()).getPageNumber()) {
 				break;
 			}
 		}
+		if(n == null) {
+			throw new HashEntryNotFoundException(null, "Hash Entry not Found");
+		}
 		hm[hash(pn.pid)].remove(n);
 		return n;
+	}
+
+	public int getFrameNumber(PageId pn) throws HashEntryNotFoundException {
+		if(pn == null) 
+			return -1;
+
+		ListIterator<Node> li = hm[hash(pn.pid)].listIterator();
+		Node n  = null;
+
+		while(li.hasNext()) {
+			n = li.next();
+			if(pn.pid == n.getPageNumber()) {
+				return n.getFrameNumber();
+			}
+		}
+	
+		if(n == null) {
+			throw new HashEntryNotFoundException(null, "Hash Entry not Found");
+		}
+
+		return -1;
+	}
+
+	public void printHM() {
+		ListIterator<Node> li = null;
+		System.out.println("****************************HASHMAP*************************");
+		for (int i = 0; i < HTSIZE; i++) {
+			System.out.print("[row " + i + "] ");
+			li = hm[i].listIterator();
+
+			while(li.hasNext()) {
+					System.out.print("[" + li.next().getPageNumber() + "] ");
+			}
+			System.out.println();
+		}
 	}
 }

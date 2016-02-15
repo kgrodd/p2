@@ -104,20 +104,42 @@ class BMDriver extends TestDriver implements GlobalConst {
 		return _pass;
 	}
 
+
+
+
 	protected boolean runAllTests (){
 
 		boolean _passAll = OK;
+
+		/*try{
+				Minibase.BufferManager.printBufPool();
+				System.out.println("number of unpinned pages" + Minibase.BufferManager.getNumUnpinned());
+				Minibase.BufferManager.pinPage(new PageId(1), new Page(), false);
+				Minibase.BufferManager.unpinPage(new PageId(1), false);
+				System.out.println("number of unpinned pages" + Minibase.BufferManager.getNumUnpinned());
+				Minibase.BufferManager.pinPage(new PageId(3), new Page(), false);
+				Minibase.BufferManager.pinPage(new PageId(1), new Page(), false);
+				Minibase.BufferManager.pinPage(new PageId(1), new Page(), false);
+				Minibase.BufferManager.pinPage(new PageId(1), new Page(), false);
+				Minibase.BufferManager.pinPage(new PageId(4), new Page(), false);
+				Minibase.BufferManager.pinPage(new PageId(1), new Page(), false);
+				Minibase.BufferManager.pinPage(new PageId(6), new Page(), false);
+				Minibase.BufferManager.pinPage(new PageId(1), new Page(), false);
+				Minibase.BufferManager.pinPage(new PageId(6), new Page(), false);
+				Minibase.BufferManager.printBufPool();
+		}catch(ChainException c){}*/
+
 
 		//The following runs all the test functions 
 
 		//Running test1() to test6()
 		if (!test1()) { _passAll = FAIL; }    
-		if (!test2()) { _passAll = FAIL; }
+/*		if (!test2()) { _passAll = FAIL; }
 		if (!test3()) { _passAll = FAIL; }
 		if (!test4()) { _passAll = FAIL; }
 		if (!test5()) { _passAll = FAIL; }
 		if (!test6()) { _passAll = FAIL; }
-
+*/
 		return _passAll;
 	}
 
@@ -137,6 +159,7 @@ class BMDriver extends TestDriver implements GlobalConst {
 		// written during this test.
 		boolean status = OK;
 		int numPages = Minibase.BufferManager.getNumUnpinned() + 1;
+		//System.out.println("NUm pagees is : " + numPages);
 		Page pg = new Page(); 
 		PageId pid; 
 		PageId lastPid;
@@ -158,6 +181,7 @@ class BMDriver extends TestDriver implements GlobalConst {
 		// Unpin that first page... to simplify our loop.
 		try {
 			Minibase.BufferManager.unpinPage(firstPid, false /*not dirty*/);
+		//System.out.println("NUm pagees is : " + Minibase.BufferManager.getNumUnpinned());
 		}
 		catch (Exception e) {
 			System.err.print("*** Could not unpin the first new page.\n");
@@ -216,7 +240,7 @@ class BMDriver extends TestDriver implements GlobalConst {
 			System.out.print ("  - Read that something back from each one\n" + 
 					"   (because we're buffering, this is where "  +
 			"most of the writes happen)\n");
-
+//System.out.println("first : " + firstPid.pid + "lastpd : " + lastPid.pid);
 		for (pid.pid=firstPid.pid; status==OK && pid.pid<lastPid.pid; 
 		pid.pid = pid.pid + 1) {
 
@@ -242,6 +266,7 @@ class BMDriver extends TestDriver implements GlobalConst {
 				}
 
 				if (status == OK) {
+					System.out.println("data is : " + (data) + "pid is : " + (pid.pid + 99999));
 					if (data != (pid.pid) + 99999) {
 						status = FAIL;
 						System.err.print ("*** Read wrong data back from page " 
@@ -308,6 +333,7 @@ class BMDriver extends TestDriver implements GlobalConst {
 		System.out.print("  - Try to pin more pages than there are frames\n");
 		try {
 			firstPid = Minibase.BufferManager.newPage( pg, numPages );
+			//System.out.println("first pid is " + firstPid);
 		}
 		catch (Exception e) {   
 			System.err.print("*** Could not allocate " + numPages);
