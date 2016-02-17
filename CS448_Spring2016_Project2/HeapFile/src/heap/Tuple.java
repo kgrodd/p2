@@ -19,7 +19,7 @@ public class Tuple{
 	}
 	
 	public Tuple(){
-		this(new byte [1004], 0, 1004);
+		this(new byte [GlobalConst.MAX_TUPSIZE], 0, GlobalConst.MAX_TUPSIZE);
 	}
 	
 	public int getLength(){

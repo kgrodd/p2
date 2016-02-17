@@ -24,43 +24,52 @@ import java.util.LinkedList;
 
 import chainexception.ChainException;
 
-public class HeapFile{
+public class HeapFile implements GlobalConst{
 	int RecCnt;						//Record Count
 	HFPage hp;						//header page file
 	String HFPName;					//Name of header File Page
-	LinkedList <HFPage> FreeSpace;	//HFPages with free space
-	LinkedList <HFPage> NoFreeSpace;//HFPages with no free space
 	PageId HeaderPageId;		
-	DiskMgr DM;
-	BufMgr BM;
-	
+	LinkedList <PageId> addedIds;	//Ids added to the hash map	
+
+	//Minibase.DiskManager.method()
 	/* If the given name already denotes a file, open it;
 	otherwise, create new empty file*/
 	public HeapFile(String name){
-		this.DM = new DiskMgr();
-		this.BM = new BufMgr(1000, 10);
-		this.FreeSpace = new LinkedList <HFPage>();
-		this.NoFreeSpace = new LinkedList <HFPage>();
 		this.HFPName = name;
+		this.hp = new HFPage();
+		this.RecCnt = 0;
 		/*if the file doesn't exist, create db */
-		if(DM.get_file_entry(name) == null){
-			this.HeaderPageId = BM.newPage((new HFPage()), 1); //runsize: how many pages to allocate
-			DM.createDB(name, 10); 			//Check num pages 
+		if(Minibase.DiskManager.get_file_entry(name) == null){
+			this.HeaderPageId = Minibase.BufferManager.newPage(this.hp, 1); //newPage() does pinning
+			Minibase.BufferManager.unpinPage(this.HeaderPageId, true);
 		}
 		
 		/*open if it does exist */
 		else{
-			DM.openDB(name);
+			
+			this.HeaderPageId = Minibase.DiskManager.get_file_entry(name);
+			Minibase.BufferManager.pinPage(this.HeaderPageId, this.hp, true);
+			int counter = 0;
+			RID itter = this.hp.firstRecord();
+			while(itter != null){
+				counter++;
+				itter = this.hp.nextRecord(itter);
+			}
+			this.RecCnt = 0;
+			Minibase.BufferManager.unpinPage(this.HeaderPageId, true);
 		}
 	}
 	
 	/*Inserts a new record into the flie and returns its RID*/
 	public RID insertRecord(byte[] record){
+		RID newRid = new RID();
+		HFPage newHFP = new HFPage();
 		return null;
 	}
 	
 	/* */
 	public Tuple getRecord(RID rid){
+		Tuple record = new Tuple();
 		return null;
 	}
 	
@@ -76,7 +85,7 @@ public class HeapFile{
 	
 	/* gets the number of records in the file */
 	public int getRecCnt(){
-		return 0;
+		return this.RecCnt;
 	}
 	
 	/* Initiates a sequential scan of the heap file */
