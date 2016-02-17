@@ -42,6 +42,7 @@ public class HeapFile implements GlobalConst{
 		/*if the file doesn't exist, create db */
 		if(Minibase.DiskManager.get_file_entry(name) == null){
 			this.HeaderPageId = Minibase.BufferManager.newPage(this.hp, 1); //newPage() does pinning
+			System.out.println(;
 			Minibase.BufferManager.unpinPage(this.HeaderPageId, true);
 		}
 		
@@ -62,35 +63,49 @@ public class HeapFile implements GlobalConst{
 	}
 	
 	/*Inserts a new record into the flie and returns its RID*/
-	public RID insertRecord(byte[] record){
-		RID newRid = new RID();
-		HFPage newHFP = new HFPage();
-		return null;
+	public RID insertRecord(byte[] record)throws ChainException{
+		RID newRid = null;
+		PageId pid = new PageId();
+		HFPage tempHFP = new HFPage();
+		//System.out.println(this.hp.getNextPage() + " "+ " " + this.hp.getCurPage());
+		tempHFP.setCurPage(this.hp.getNextPage());
+		while(newRid == null){
+			if(tempHFP.getFreeSpace() >= record.length){
+				newRid = tempHFP.insertRecord(record);
+				break;
+			}
+			tempHFP.setCurPage(tempHFP.getNextPage());
+		}
+		this.RecCnt++;
+		return newRid;
 	}
 	
 	/* */
-	public Tuple getRecord(RID rid){
+	public Tuple getRecord(RID rid)throws ChainException{
+
 		Tuple record = new Tuple();
 		return null;
 	}
 	
 	/*Updates the specified record in the heap file */ 
-	public boolean updateRecord(RID rid, Tuple newRecord){
+	public boolean updateRecord(RID rid, Tuple newRecord)throws ChainException{
+
 		return true;
 	}
 	
 	/* Deletes the specified record from the Heap file*/
-	public boolean deleteRecord(RID rid){
+	public boolean deleteRecord(RID rid) throws ChainException{
+		this.RecCnt--;
 		return true;
 	}
 	
 	/* gets the number of records in the file */
-	public int getRecCnt(){
+	public int getRecCnt() throws ChainException{
 		return this.RecCnt;
 	}
 	
 	/* Initiates a sequential scan of the heap file */
-	public HeapScan openScan(){
+	public HeapScan openScan()throws ChainException{
 		return null;
 	}
 }

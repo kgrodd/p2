@@ -8,6 +8,8 @@ import global.Page;
 import global.PageId;
 import global.RID;
 
+import chainexception.ChainException;
+
 public class HeapScan{
 	protected HeapScan (HeapFile hf){
 
@@ -15,13 +17,13 @@ public class HeapScan{
 	protected void finalize () throws Throwable {
 		return;
 	}
-	public void close () {
+	public void close () throws ChainException{
 		return;
 	}
-	public boolean hasNext () {
+	public boolean hasNext () throws ChainException{
 		return true;
 	}	
-	public Tuple getNext (RID rid) {
+	public Tuple getNext (RID rid) throws ChainException{
 		return null;
 	}
 }
