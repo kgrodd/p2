@@ -25,11 +25,12 @@ import java.util.LinkedList;
 import chainexception.ChainException;
 
 public class HeapFile implements GlobalConst{
-	int RecCnt;						//Record Count
-	HFPage hp;						//header page file
-	String HFPName;					//Name of header File Page
-	PageId HeaderPageId;		
-	LinkedList <PageId> addedIds;	//Ids added to the hash map	
+	private int RecCnt;						//Record Count
+	private HFPage hp;						//header page file
+	private String HFPName;					//Name of header File Page
+	private PageId HeaderPageId;		
+	private LinkedList <HFNode> haveSpace;	
+	private LinkedList <HFNode> dontHaveSpace;	
 
 	//Minibase.DiskManager.method()
 	/* If the given name already denotes a file, open it;

@@ -7,9 +7,9 @@ import global.Minibase;
 import global.RID;
 
 public class Tuple{
-	byte [] data;
-	int useless;
-	int length;	
+	private byte [] data;
+	private int useless;
+	private int length;	
 
 	
 	public Tuple(byte [] data, int useless, int Length){
