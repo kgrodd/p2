@@ -351,7 +351,7 @@ class BMDriver extends TestDriver implements GlobalConst {
 		pid.pid = pid.pid + 1 ) {
 
 			try {
-				Minibase.BufferManager.pinPage( pid, pg, /*emptyPage:*/ false );
+				Minibase.BufferManager.pinPage( pid, pg,  false );
 			}
 			catch (Exception e) { 
 				status = FAIL;
@@ -372,7 +372,7 @@ class BMDriver extends TestDriver implements GlobalConst {
 		// Now pin that last page, and make sure it fails.
 		if ( status == OK ) {
 			try {
-				Minibase.BufferManager.pinPage( lastPid, pg, /*emptyPage:*/ false );
+				Minibase.BufferManager.pinPage( lastPid, pg,  false );
 			}
 			catch (ChainException e) { 
 				status = checkException (e, "bufmgr.BufferPoolExceededException");
@@ -394,7 +394,7 @@ class BMDriver extends TestDriver implements GlobalConst {
 
 		if ( status == OK ) {
 			try {
-				Minibase.BufferManager.pinPage( firstPid, pg, /*emptyPage:*/ false );
+				Minibase.BufferManager.pinPage( firstPid, pg,  false );
 			}
 			catch (Exception e) {
 				status = FAIL;

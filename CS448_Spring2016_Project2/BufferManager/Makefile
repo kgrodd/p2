@@ -14,5 +14,5 @@ compile:src/*/*.java
 	$(JAVAC) -cp $(CLASSPATH) -d bin src/*/*.java
 
 xx : compile
-	$(JAVA) -cp $(CLASSPATH):bin tests.BMTest > out.txt
+	$(JAVA) -cp $(CLASSPATH):bin tests.BMTest
 

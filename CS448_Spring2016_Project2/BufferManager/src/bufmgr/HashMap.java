@@ -16,7 +16,7 @@ import java.util.ListIterator;
 import chainexception.ChainException;
 
 public class HashMap implements GlobalConst {
-	private static final int HTSIZE = 53;
+	private static final int HTSIZE = 17137;
 	private LinkedList<Node>[] hm;
 
 	public HashMap() {
@@ -34,15 +34,11 @@ public class HashMap implements GlobalConst {
 		return (pn * a + b) % HTSIZE;
 	}
 
-	public int size() {
-		return this.HTSIZE;
-	}
-
 	public void add(Node n) {
 		hm[hash(n.getPageNumber())].add(n);
 	}
 	
-	public Node remove(PageId pn) throws HashEntryNotFoundException {
+	public Node remove(PageId pn) {
 		if(pn == null) 
 			return null;
 		ListIterator<Node> li = hm[hash(pn.pid)].listIterator();
@@ -53,14 +49,12 @@ public class HashMap implements GlobalConst {
 				break;
 			}
 		}
-		if(n == null) {
-			throw new HashEntryNotFoundException(null, "Hash Entry not Found");
-		}
+
 		hm[hash(pn.pid)].remove(n);
 		return n;
 	}
 
-	public int getFrameNumber(PageId pn) throws HashEntryNotFoundException {
+	public int getFrameNumber(PageId pn) {
 		if(pn == null) 
 			return -1;
 
@@ -74,12 +68,14 @@ public class HashMap implements GlobalConst {
 			}
 		}
 	
-		if(n == null) {
-			throw new HashEntryNotFoundException(null, "Hash Entry not Found");
-		}
-
+	
 		return -1;
 	}
+
+	public int size() {
+		return this.HTSIZE;
+	}
+
 
 	public void printHM() {
 		ListIterator<Node> li = null;

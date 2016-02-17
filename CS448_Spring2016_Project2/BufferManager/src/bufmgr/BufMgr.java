@@ -69,12 +69,10 @@ public class BufMgr implements GlobalConst{
 	* @param page the pointer point to the page.
 	* @param emptyPage true (empty page); false (non-empty page)
 	*/
-	public void pinPage(PageId pageno, Page page, boolean emptyPage) throws BufferPoolExceededException{
-			//hm.printHM();
+	public void pinPage(PageId pageno, Page page, boolean emptyPage) throws BufferPoolExceededException, HashEntryNotFoundException{
 			int loc = -1; //replacement location for when candidate is dirty
-									//printBufPool();
+
 			for (int i = 0; i < this.numBufs; i++) {
-//System.out.println("page no is " + pageno.pid + " other is " + bufDescr[i].getPageId());
 				if(pageno.pid == this.bufDescr[i].getPageId()) {
 					this.bufDescr[i].incPinCount();
 					this.bufPool[i] = page;
@@ -84,7 +82,7 @@ public class BufMgr implements GlobalConst{
 						loc = i;
 				}
 			}
-//System.out.println("location is " + loc);
+
 			if(loc == -1) {
 				throw new BufferPoolExceededException(null, "No Empty Frames to pin too");
 			}
@@ -102,24 +100,16 @@ public class BufMgr implements GlobalConst{
 			} 
 			catch(ChainException e) {}
 			catch(IOException i) {}
-						//printBufPool();
+
 			if(this.bufDescr[loc].getPageId() != -1) {
-				try{
-					//hm.printHM();
-					//System.out.println("pid to remove is " + bufDescr[loc].getPID());
-					this.hm.remove(bufDescr[loc].getPID());	
-				} catch(ChainException c) {
-				
-				}
+				if (this.hm.remove(bufDescr[loc].getPID()) == null)			
+					throw new HashEntryNotFoundException(null, "hash entry not found!");
 			}
 
 		
 			this.hm.add(new Node(pageno.pid, loc));	
 			this.bufPool[loc] = page;
 			this.bufDescr[loc] = new Record(pageno.pid, 1, 0);
-			//printBufPool();
-
-			//hm.printHM();
 	}
 	
 
@@ -139,15 +129,15 @@ public class BufMgr implements GlobalConst{
 	* @param pageno page number in the Minibase.
 	* @param dirty the dirty bit of the frame
 	*/
-	public void unpinPage(PageId pageno, boolean dirty) throws PageUnpinnedException {
+	public void unpinPage(PageId pageno, boolean dirty) throws PageUnpinnedException, HashEntryNotFoundException {
 
 			//hm.printHM();
 			//System.out.println("this is pageno : " + pageno);
 			int frameNo = 0;
-			try{
-				frameNo = this.hm.getFrameNumber(pageno);
-			}
-			catch(ChainException e) {}
+			
+			if((frameNo = this.hm.getFrameNumber(pageno)) == -1)
+				throw new HashEntryNotFoundException(null, "hash entry not found!");
+			
 
 			if(this.bufDescr[frameNo].getPinCount() == 0) {
 				throw new PageUnpinnedException(null, "Page not pinned");
@@ -155,7 +145,6 @@ public class BufMgr implements GlobalConst{
 					
 			this.bufDescr[frameNo].decPinCount();
 			this.bufDescr[frameNo].setDirtyBit(dirty);
-			//hm.printHM();
 	}
 
 
@@ -199,15 +188,12 @@ public class BufMgr implements GlobalConst{
 			return null;	
 		}
 
-		//this.bufDescr[loc] = new Record(pageno.pid, 1, 0);
-		//this.bufPool[loc] = firstpage;
-
-		//this.hm.add(new Node(pageno.pid, loc));
 		try{
 			pinPage(pageno, firstpage, false);
 		} catch (ChainException c) {
 
 		}
+
 		return pageno;
 	}
 	
@@ -220,8 +206,14 @@ public class BufMgr implements GlobalConst{
 	* @param globalPageId the page number in the data base.
 	*/
 	public void freePage(PageId globalPageId) throws ChainException{
-		
-			Minibase.DiskManager.deallocate_page(globalPageId);
+		int frameNo = 0;
+
+		if((frameNo = this.hm.getFrameNumber(globalPageId)) != -1) {
+			if(bufDescr[frameNo].getPinCount() > 0) 
+				throw new PagePinnedException(null, "Page is pinned!");
+		}
+
+		Minibase.DiskManager.deallocate_page(globalPageId);
 		
 	}
 	
@@ -232,10 +224,14 @@ public class BufMgr implements GlobalConst{
 	*
 	* @param pageid the page number in the database.
 	*/
-	public void flushPage(PageId pageid) {
+	public void flushPage(PageId pageid) throws HashEntryNotFoundException{
 		int frameNo = 0;
+
+		if(this.hm.getFrameNumber(pageid) == -1) {
+			throw new HashEntryNotFoundException(null, "hash entry not found!");
+		}
+
 		try {
-			this.hm.getFrameNumber(pageid);
 			Minibase.DiskManager.write_page(pageid, bufPool[frameNo]);
 		} 
 		catch(ChainException e) {}
@@ -244,10 +240,10 @@ public class BufMgr implements GlobalConst{
 		this.bufPool[frameNo] = new Page();
 		this.bufDescr[frameNo] = new Record(-1, 0, 0);
 
-		try {
-			this.hm.remove(pageid);
-		}
-		catch(ChainException e) {}
+		
+		if(this.hm.remove(pageid) == null)
+			throw new HashEntryNotFoundException(null, "hash entry not found!");
+	
 	}
 	
 
@@ -258,7 +254,9 @@ public class BufMgr implements GlobalConst{
 	public void flushAllPages() {
 		for(int i = 0; i < this.numBufs; i++) {
 			if(this.bufDescr[i].getDirtyBit() == 1){
-				this.flushPage(this.bufDescr[i].getPID());
+				try{
+					this.flushPage(this.bufDescr[i].getPID());
+				} catch (HashEntryNotFoundException h) {}
 			}
 		}
 	};
