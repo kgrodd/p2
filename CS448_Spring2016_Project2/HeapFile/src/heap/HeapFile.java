@@ -101,7 +101,7 @@ public class HeapFile implements GlobalConst{
 	}
 
 
-		public void printHF() {
+	public void printHF() {
 		RID newRid = null;
 		PageId pid = new PageId();
 		HFPage tempHFP = this.hp;
