@@ -111,24 +111,16 @@ class BMDriver extends TestDriver implements GlobalConst {
 
 		boolean _passAll = OK;
 
-		/*try{
+	/*	try{
 				Minibase.BufferManager.printBufPool();
 				System.out.println("number of unpinned pages" + Minibase.BufferManager.getNumUnpinned());
 				Minibase.BufferManager.pinPage(new PageId(1), new Page(), false);
 				Minibase.BufferManager.unpinPage(new PageId(1), false);
-				System.out.println("number of unpinned pages" + Minibase.BufferManager.getNumUnpinned());
-				Minibase.BufferManager.pinPage(new PageId(3), new Page(), false);
-				Minibase.BufferManager.pinPage(new PageId(1), new Page(), false);
-				Minibase.BufferManager.pinPage(new PageId(1), new Page(), false);
-				Minibase.BufferManager.pinPage(new PageId(1), new Page(), false);
-				Minibase.BufferManager.pinPage(new PageId(4), new Page(), false);
-				Minibase.BufferManager.pinPage(new PageId(1), new Page(), false);
-				Minibase.BufferManager.pinPage(new PageId(6), new Page(), false);
-				Minibase.BufferManager.pinPage(new PageId(1), new Page(), false);
-				Minibase.BufferManager.pinPage(new PageId(6), new Page(), false);
+				Minibase.BufferManager.freePage(new PageId(1));
 				Minibase.BufferManager.printBufPool();
-		}catch(ChainException c){}*/
-
+		}catch(ChainException c){
+			System.out.println("What");		
+		}*/
 
 		//The following runs all the test functions 
 

@@ -57,7 +57,7 @@ public class HeapFile implements GlobalConst{
 				counter++;
 				itter = this.hp.nextRecord(itter);
 			}
-			this.RecCnt = 0;
+			this.RecCnt = counter;
 			Minibase.BufferManager.unpinPage(this.HeaderPageId, true);
 		}
 	}
@@ -79,14 +79,7 @@ public class HeapFile implements GlobalConst{
 		this.RecCnt++;
 		return newRid;
 	}
-	
-	/* */
-	public Tuple getRecord(RID rid)throws ChainException{
 
-		Tuple record = new Tuple();
-		return null;
-	}
-	
 	/*Updates the specified record in the heap file */ 
 	public boolean updateRecord(RID rid, Tuple newRecord)throws ChainException{
 
@@ -97,7 +90,18 @@ public class HeapFile implements GlobalConst{
 	public boolean deleteRecord(RID rid) throws ChainException{
 		this.RecCnt--;
 		return true;
+	}	
+
+	/* */
+	public Tuple getRecord(RID rid)throws ChainException{
+		HFPage f = new HFPage();
+		Minibase.BufferManager.pinPage(rid.pid, f, true);
+		Tuple t = new Tuple(f.selectRecord(rid), 0, );
+		Minibase.BufferManager.unpinPage(f.pid, false);
+		return t;
 	}
+	
+
 	
 	/* gets the number of records in the file */
 	public int getRecCnt() throws ChainException{

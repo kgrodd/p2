@@ -16,7 +16,7 @@ import java.util.ListIterator;
 import chainexception.ChainException;
 
 public class HashMap implements GlobalConst {
-	private static final int HTSIZE = 17137;
+	private static final int HTSIZE = 53;//17137;
 	private LinkedList<Node>[] hm;
 
 	public HashMap() {

@@ -75,7 +75,8 @@ public class BufMgr implements GlobalConst{
 			for (int i = 0; i < this.numBufs; i++) {
 				if(pageno.pid == this.bufDescr[i].getPageId()) {
 					this.bufDescr[i].incPinCount();
-					this.bufPool[i] = page;
+					//this.bufPool[i] = page;
+					this.bufPool[i].setPage(page);					
 					return;
 				} else if (this.bufDescr[i].getPinCount() == 0){
 					if(loc == -1)
@@ -211,10 +212,10 @@ public class BufMgr implements GlobalConst{
 		if((frameNo = this.hm.getFrameNumber(globalPageId)) != -1) {
 			if(bufDescr[frameNo].getPinCount() > 0) 
 				throw new PagePinnedException(null, "Page is pinned!");
+
 		}
 
 		Minibase.DiskManager.deallocate_page(globalPageId);
-		
 	}
 	
 
@@ -278,10 +279,7 @@ public class BufMgr implements GlobalConst{
 		for(int i = 0; i < this.numBufs; i++) {
 			r = bufDescr[i];
 			if(r.getPinCount() == 0) 
-				ct++;
-			else {
-			//System.out.println("this is pinned : " + i + " page id is " + bufDescr[i].getPageId()) ;
-			}	
+				ct++;	
 		}
 		return ct;	
 	}
