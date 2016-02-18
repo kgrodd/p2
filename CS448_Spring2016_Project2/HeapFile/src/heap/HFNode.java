@@ -19,11 +19,13 @@ import java.util.LinkedList;
 import chainexception.ChainException;
 
 public class HFNode{
-	private PageId pid;
-	private HFPage hp;
-	public HFNode(PageId pid, HFPage hp){
+	public PageId pid;
+	public HFPage hp;
+	short space;
+	public HFNode(PageId pid, HFPage hp, short space){
 		this.pid = pid;
 		this.hp = hp;
+		this.space = space;
 	}
 
 }
