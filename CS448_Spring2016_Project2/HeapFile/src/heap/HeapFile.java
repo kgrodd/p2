@@ -106,8 +106,22 @@ public class HeapFile implements GlobalConst{
 	
 	/* Deletes the specified record from the Heap file*/
 	public boolean deleteRecord(RID rid) throws ChainException{
+		HFPage tempHFP = new HFPage();
+		PageId tempId = this.hpId;
 
-		return true;
+		do{
+			Minibase.BufferManager.pinPage(tempId, tempHFP, false);
+			tempHFP.setCurPage(tempId);
+			if(tempid.pid = rid.pid) {
+				tempHFP.deleteRecord(record);
+				Minibase.BufferManager.unpinPage(tempId, true);
+				this.RecCnt--;
+				return true;
+			}
+			Minibase.BufferManager.unpinPage(tempId, false);
+			tempId = tempHFP.getNextPage();
+		}while(tempId.pid != -1);
+		return false;
 	}	
 
 	/* */
