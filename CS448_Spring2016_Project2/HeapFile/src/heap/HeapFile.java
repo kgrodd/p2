@@ -28,7 +28,7 @@ public class HeapFile implements GlobalConst{
 	private int RecCnt;						//Record Count
 	private HFPage hp;						//header page file
 	private String HFPName;					//Name of header File Page
-	private PageId HeaderPageId;		
+	private PageId hpId;
 	private LinkedList <HFNode> haveSpace;	
 	private LinkedList <HFNode> dontHaveSpace;	
 
@@ -38,44 +38,34 @@ public class HeapFile implements GlobalConst{
 	public HeapFile(String name){
 		this.HFPName = name;
 		this.hp = new HFPage();
+
 		this.RecCnt = 0;
 		/*if the file doesn't exist, create db */
 		if(Minibase.DiskManager.get_file_entry(name) == null){
-			this.HeaderPageId = Minibase.BufferManager.newPage(this.hp, 1); //newPage() does pinning
-			System.out.println(;
-			Minibase.BufferManager.unpinPage(this.HeaderPageId, true);
+			System.out.println("Doesn't Exists!!!");
+			this.hpId = Minibase.BufferManager.newPage(this.hp, 1); //newPage() does pinning
+			System.out.println("head id : " + this.hpId.pid);
+			Minibase.BufferManager.unpinPage(this.hpId, true);
 		}
 		
-		/*open if it does exist */
-		else{
-			
-			this.HeaderPageId = Minibase.DiskManager.get_file_entry(name);
-			Minibase.BufferManager.pinPage(this.HeaderPageId, this.hp, true);
-			int counter = 0;
-			RID itter = this.hp.firstRecord();
-			while(itter != null){
-				counter++;
-				itter = this.hp.nextRecord(itter);
-			}
-			this.RecCnt = counter;
-			Minibase.BufferManager.unpinPage(this.HeaderPageId, true);
-		}
 	}
 	
-	/*Inserts a new record into the flie and returns its RID*/
+		/*Inserts a new record into the flie and returns its RID*/
 	public RID insertRecord(byte[] record)throws ChainException{
 		RID newRid = null;
-		PageId pid = new PageId();
 		HFPage tempHFP = new HFPage();
-		//System.out.println(this.hp.getNextPage() + " "+ " " + this.hp.getCurPage());
-		tempHFP.setCurPage(this.hp.getNextPage());
-		while(newRid == null){
-			if(tempHFP.getFreeSpace() >= record.length){
-				newRid = tempHFP.insertRecord(record);
-				break;
+		boolean flag = true;
+		PageId tempId = this.hpId;
+
+		do{
+			Minibase.BufferManager.pinPage(tempId, tempHFP, false);
+			if(tempHFP.getFreeSpace() >= record.length) {
+				tempHFP.insertRecord(record);
+				flag = false;
 			}
-			tempHFP.setCurPage(tempHFP.getNextPage());
-		}
+			Minibase.BufferManager.unpinPage(tempId, false);
+			tempId = tempHFP.getNextPage();
+		}while(tempHFP.getNextPage().pid != 0 && flag);
 		this.RecCnt++;
 		return newRid;
 	}
@@ -88,17 +78,14 @@ public class HeapFile implements GlobalConst{
 	
 	/* Deletes the specified record from the Heap file*/
 	public boolean deleteRecord(RID rid) throws ChainException{
-		this.RecCnt--;
+
 		return true;
 	}	
 
 	/* */
 	public Tuple getRecord(RID rid)throws ChainException{
-		HFPage f = new HFPage();
-		Minibase.BufferManager.pinPage(rid.pid, f, true);
-		Tuple t = new Tuple(f.selectRecord(rid), 0, );
-		Minibase.BufferManager.unpinPage(f.pid, false);
-		return t;
+
+		return null;
 	}
 	
 
@@ -112,4 +99,21 @@ public class HeapFile implements GlobalConst{
 	public HeapScan openScan()throws ChainException{
 		return null;
 	}
+
+
+		public void printHF() {
+		RID newRid = null;
+		PageId pid = new PageId();
+		HFPage tempHFP = this.hp;
+		PageId tempId = this.hpId;
+
+		 do{
+			System.out.println("id in  : " + tempHFP.getNextPage().pid + "tempId" + tempId.pid);
+			Minibase.BufferManager.pinPage(tempId, tempHFP, false);
+			tempHFP.print();
+			Minibase.BufferManager.unpinPage(tempId, false);
+			tempId= tempHFP.getNextPage();
+		}while(tempHFP.getNextPage().pid != -1);
+	}
+
 }
