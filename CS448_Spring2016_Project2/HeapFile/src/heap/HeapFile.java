@@ -36,15 +36,34 @@ public class HeapFile implements GlobalConst{
 	public HeapFile(String name){
 		this.HFPName = name;
 		this.hp = new HFPage();
-
 		this.RecCnt = 0;
+
 		/*if the file doesn't exist, create db */
-		if(Minibase.DiskManager.get_file_entry(name) == null){
+		PageId fi = Minibase.DiskManager.get_file_entry(name);
+		RID rid = new RID();
+		HFPage tp = this.hp;
+
+		if(fi == null){
 			System.out.println("Doesn't Exists!!!");
 			this.hpId = Minibase.BufferManager.newPage(this.hp, 1); //newPage() does pinning
 			System.out.println("head id : " + this.hpId.pid);
 			Minibase.BufferManager.unpinPage(this.hpId, true);
-			hp.setCurPage(hpId);
+		} else {
+			this.hpId = fi;
+
+			do{
+				Minibase.BufferManager.pinPage(fi, tp, false);			
+				tp.setCurPage(fi);
+				rid = tp.firstRecord();
+
+				while(rid != null) {
+					this.RecCnt++;
+					rid = tp.nextRecord(rid);
+				}
+
+				Minibase.BufferManager.unpinPage(fi, false);
+				fi = tp.getNextPage();
+			}while(fi.pid != -1);
 		}
 	}
 	
@@ -52,18 +71,29 @@ public class HeapFile implements GlobalConst{
 	public RID insertRecord(byte[] record)throws ChainException{
 		RID newRid = null;
 		HFPage tempHFP = new HFPage();
-		boolean flag = true;
 		PageId tempId = this.hpId;
 
 		do{
 			Minibase.BufferManager.pinPage(tempId, tempHFP, false);
+			tempHFP.setCurPage(tempId);
 			if(tempHFP.getFreeSpace() >= record.length) {
 				newRid = tempHFP.insertRecord(record);
-				flag = false;
+				Minibase.BufferManager.unpinPage(tempId, true);
+				this.RecCnt++;
+				return newRid;
 			}
 			Minibase.BufferManager.unpinPage(tempId, false);
 			tempId = tempHFP.getNextPage();
-		}while(tempHFP.getNextPage().pid != -1 && flag);
+		}while(tempId.pid != -1);
+
+        HFPage tempHFPTwo = new HFPage();
+		tempId = Minibase.BufferManager.newPage(tempHFPTwo, 1);
+		Minibase.BufferManager.pinPage(tempHFP.getCurPage(), tempHFP, false);
+		tempHFP.setNextPage(tempId);
+		Minibase.BufferManager.unpinPage(tempHFP.getCurPage(), false);
+		
+		newRid = tempHFPTwo.insertRecord(record);
+		Minibase.BufferManager.unpinPage(tempId, true);
 		this.RecCnt++;
 		return newRid;
 	}
