@@ -42,7 +42,6 @@ public class HeapFile implements GlobalConst{
 		/*if the file doesn't exist, create db */
 		if(Minibase.DiskManager.get_file_entry(name) == null){
 			this.HeaderPageId = Minibase.BufferManager.newPage(this.hp, 1); //newPage() does pinning
-			System.out.println(;
 			Minibase.BufferManager.unpinPage(this.HeaderPageId, true);
 		}
 		
@@ -67,7 +66,6 @@ public class HeapFile implements GlobalConst{
 		RID newRid = null;
 		PageId pid = new PageId();
 		HFPage tempHFP = new HFPage();
-		//System.out.println(this.hp.getNextPage() + " "+ " " + this.hp.getCurPage());
 		tempHFP.setCurPage(this.hp.getNextPage());
 		while(newRid == null){
 			if(tempHFP.getFreeSpace() >= record.length){
@@ -95,9 +93,9 @@ public class HeapFile implements GlobalConst{
 	/* */
 	public Tuple getRecord(RID rid)throws ChainException{
 		HFPage f = new HFPage();
-		Minibase.BufferManager.pinPage(rid.pid, f, true);
-		Tuple t = new Tuple(f.selectRecord(rid), 0, );
-		Minibase.BufferManager.unpinPage(f.pid, false);
+		Minibase.BufferManager.pinPage(rid.pageno, f, true);
+		Tuple t = new Tuple(f.selectRecord(rid), 0, f.selectRecord(rid).length);
+		Minibase.BufferManager.unpinPage(rid.pageno, false);
 		return t;
 	}
 	
@@ -113,3 +111,5 @@ public class HeapFile implements GlobalConst{
 		return null;
 	}
 }
+
+

@@ -1,34 +1,25 @@
-/******************************************************************************
- *  Compilation:  javac RedBlackBST.java
- *  Execution:    java RedBlackBST < input.txt
- *  Dependencies: StdIn.java StdOut.java  
- *  Data files:   http://algs4.cs.princeton.edu/33balanced/tinyST.txt  
- *    
- *  A symbol table implemented using a left-leaning red-black BST.
- *  This is the 2-3 version.
- *
- *  Note: commented out assertions because DrJava now enables assertions
- *        by default.
- *
- *  % more tinyST.txt
- *  S E A R C H E X A M P L E
- *  
- *  % java RedBlackBST < tinyST.txt
- *  A 8
- *  C 4
- *  E 12
- *  H 5
- *  L 11
- *  M 9
- *  P 10
- *  R 3
- *  S 0
- *  X 7
- *
- ******************************************************************************/
+/* This is Princeton's implementaion with
+ * some modifications to make it applicable
+ * to the project */
+
+package heap;
 
 import java.util.NoSuchElementException;
 
+import global.Convert;
+import global.GlobalConst;
+import global.Minibase;
+import global.Page;
+import global.PageId;
+import global.RID;
+
+import heap.HeapFile;
+import heap.HFPage;
+import heap.HeapScan;
+import heap.Tuple;
+
+import diskmgr.DiskMgr;
+import bufmgr.BufMgr;
 /**
  *  The <tt>BST</tt> class represents an ordered symbol table of generic
  *  key-value pairs.
@@ -63,7 +54,7 @@ import java.util.NoSuchElementException;
  *  <i>Algorithms, 4th Edition</i> by Robert Sedgewick and Kevin Wayne.
  */
 
-public class RedBlackBST<Key extends Comparable<Key>, Value> {
+public class RedBlackBST<Key extends Comparable<Key>> {
 
     private static final boolean RED   = true;
     private static final boolean BLACK = false;
@@ -72,17 +63,19 @@ public class RedBlackBST<Key extends Comparable<Key>, Value> {
 
     // BST helper node data type
     private class Node {
-        private Key key;           // key
-        private Value val;         // associated data
+        private Key key;           // key - HFPageId
+        public HFPage page;         // associated data 
         private Node left, right;  // links to left and right subtrees
         private boolean color;     // color of parent link
         private int N;             // subtree count
+        private short sL;			//size left on page
 
-        public Node(Key key, Value val, boolean color, int N) {
+        public Node(Key key, HFPage page, boolean color, int N, short sL) {
             this.key = key;
-            this.val = val;
+            this.page = page;
             this.color = color;
             this.N = N;
+            this.sL = sL;
         }
     }
 
@@ -136,18 +129,18 @@ public class RedBlackBST<Key extends Comparable<Key>, Value> {
      *     and <tt>null</tt> if the key is not in the symbol table
      * @throws NullPointerException if <tt>key</tt> is <tt>null</tt>
      */
-    public Value get(Key key) {
+    public HFPage get(Key key) {
         if (key == null) throw new NullPointerException("argument to get() is null");
         return get(root, key);
     }
 
     // value associated with the given key in subtree rooted at x; null if no such key
-    private Value get(Node x, Key key) {
+    private HFPage get(Node x, Key key) {
         while (x != null) {
             int cmp = key.compareTo(x.key);
             if      (cmp < 0) x = x.left;
             else if (cmp > 0) x = x.right;
-            else              return x.val;
+            else              return x.page;
         }
         return null;
     }
@@ -177,26 +170,26 @@ public class RedBlackBST<Key extends Comparable<Key>, Value> {
      * @param val the value
      * @throws NullPointerException if <tt>key</tt> is <tt>null</tt>
      */
-    public void put(Key key, Value val) {
+    public void put(Key key, HFPage page) {
         if (key == null) throw new NullPointerException("first argument to put() is null");
-        if (val == null) {
+        if (page == null) {
             delete(key);
             return;
         }
 
-        root = put(root, key, val);
+        root = put(root, key, page);
         root.color = BLACK;
         // assert check();
     }
 
     // insert the key-value pair in the subtree rooted at h
-    private Node put(Node h, Key key, Value val) { 
-        if (h == null) return new Node(key, val, RED, 1);
+    public Node put(Node h, Key key, HFPage p) { 
+        if (h == null) return new Node(key, p, RED, 1, p.getFreeSpace());
 
         int cmp = key.compareTo(h.key);
-        if      (cmp < 0) h.left  = put(h.left,  key, val); 
-        else if (cmp > 0) h.right = put(h.right, key, val); 
-        else              h.val   = val;
+        if      (cmp < 0) h.left  = put(h.left,  key, p); 
+        else if (cmp > 0) h.right = put(h.right, key, p); 
+        else              h.page   = p;
 
         // fix-up any right-leaning links
         if (isRed(h.right) && !isRed(h.left))      h = rotateLeft(h);
@@ -311,7 +304,7 @@ public class RedBlackBST<Key extends Comparable<Key>, Value> {
             if (key.compareTo(h.key) == 0) {
                 Node x = min(h.right);
                 h.key = x.key;
-                h.val = x.val;
+                h.page = x.page;
                 // h.val = get(h.right, min(h.right).key);
                 // h.key = min(h.right).key;
                 h.right = deleteMin(h.right);
@@ -618,11 +611,11 @@ public class RedBlackBST<Key extends Comparable<Key>, Value> {
     *  Check integrity of red-black tree data structure.
     ***************************************************************************/
     private boolean check() {
-        if (!isBST())            StdOut.println("Not in symmetric order");
-        if (!isSizeConsistent()) StdOut.println("Subtree counts not consistent");
-        if (!isRankConsistent()) StdOut.println("Ranks not consistent");
-        if (!is23())             StdOut.println("Not a 2-3 tree");
-        if (!isBalanced())       StdOut.println("Not balanced");
+        //if (!isBST())            StdOut.println("Not in symmetric order");
+        //if (!isSizeConsistent()) StdOut.println("Subtree counts not consistent");
+        //if (!isRankConsistent()) StdOut.println("Ranks not consistent");
+        //if (!is23())             StdOut.println("Not a 2-3 tree");
+        //if (!isBalanced())       StdOut.println("Not balanced");
         return isBST() && isSizeConsistent() && isRankConsistent() && is23() && isBalanced();
     }
 
@@ -687,7 +680,7 @@ public class RedBlackBST<Key extends Comparable<Key>, Value> {
         if (!isRed(x)) black--;
         return isBalanced(x.left, black) && isBalanced(x.right, black);
     } 
-
-
 }
+//Copyright 2002-2015, Robert Sedgewick and Kevin Wayne.
+//Last updated: Fri Nov 20 04:26:57 EST 2015. 
 
