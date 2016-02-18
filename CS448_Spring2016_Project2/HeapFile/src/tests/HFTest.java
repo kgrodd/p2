@@ -115,7 +115,7 @@ class HFDriver extends TestDriver implements GlobalConst
 			System.err.println ("*** The heap file has left pages pinned\n");
 			status = FAIL;
 		}
-
+		f.printHF();
 		if ( status == OK ) {
 			System.out.println ("  - Add " + choice + " records to the file\n");
 			for (int i =0; (i < choice) && (status == OK); i++) {
@@ -156,7 +156,8 @@ class HFDriver extends TestDriver implements GlobalConst
 				e.printStackTrace();
 			}
 		}
-
+		f.printHF();
+/*
 		// In general, a sequential scan won't be in the same order as the
 		// insertions.  However, we're inserting fixed-length records here, and
 		// in this case the scan must return the insertion order.
@@ -262,7 +263,7 @@ class HFDriver extends TestDriver implements GlobalConst
 				}
 			}	
 		}
-
+*/
 		if ( status == OK )
 			System.out.println ("  Test 1 completed successfully.\n");
 
