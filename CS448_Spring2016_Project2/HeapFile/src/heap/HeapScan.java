@@ -12,7 +12,6 @@ import chainexception.ChainException;
 
 public class HeapScan{
 	protected HeapScan (HeapFile hf){
-
 	}
 	protected void finalize () throws Throwable {
 		return;
