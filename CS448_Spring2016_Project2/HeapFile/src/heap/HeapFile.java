@@ -29,8 +29,6 @@ public class HeapFile implements GlobalConst{
 	private HFPage hp;						//header page file
 	private String HFPName;					//Name of header File Page
 	private PageId hpId;
-	private LinkedList <HFNode> haveSpace;	
-	private LinkedList <HFNode> dontHaveSpace;	
 
 	//Minibase.DiskManager.method()
 	/* If the given name already denotes a file, open it;
@@ -46,8 +44,8 @@ public class HeapFile implements GlobalConst{
 			this.hpId = Minibase.BufferManager.newPage(this.hp, 1); //newPage() does pinning
 			System.out.println("head id : " + this.hpId.pid);
 			Minibase.BufferManager.unpinPage(this.hpId, true);
+			hp.setCurPage(hpId);
 		}
-		
 	}
 	
 		/*Inserts a new record into the flie and returns its RID*/
@@ -60,12 +58,12 @@ public class HeapFile implements GlobalConst{
 		do{
 			Minibase.BufferManager.pinPage(tempId, tempHFP, false);
 			if(tempHFP.getFreeSpace() >= record.length) {
-				tempHFP.insertRecord(record);
+				newRid = tempHFP.insertRecord(record);
 				flag = false;
 			}
 			Minibase.BufferManager.unpinPage(tempId, false);
 			tempId = tempHFP.getNextPage();
-		}while(tempHFP.getNextPage().pid != 0 && flag);
+		}while(tempHFP.getNextPage().pid != -1 && flag);
 		this.RecCnt++;
 		return newRid;
 	}
@@ -108,11 +106,13 @@ public class HeapFile implements GlobalConst{
 		PageId tempId = this.hpId;
 
 		 do{
-			System.out.println("id in  : " + tempHFP.getNextPage().pid + "tempId" + tempId.pid);
+			System.out.println("next id  : " + tempHFP.getNextPage().pid + "  tempId :" + tempId.pid);
 			Minibase.BufferManager.pinPage(tempId, tempHFP, false);
+			System.out.println("next id  : " + tempHFP.getNextPage().pid + "  tempId :" + tempId.pid);
 			tempHFP.print();
+			System.out.println("next id  : " + tempHFP.getNextPage().pid + "  tempId :" + tempId.pid);
 			Minibase.BufferManager.unpinPage(tempId, false);
-			tempId= tempHFP.getNextPage();
+			tempId = tempHFP.getNextPage();
 		}while(tempHFP.getNextPage().pid != -1);
 	}
 
