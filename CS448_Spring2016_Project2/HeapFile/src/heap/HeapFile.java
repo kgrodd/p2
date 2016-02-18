@@ -72,6 +72,7 @@ public class HeapFile implements GlobalConst{
 		RID newRid = null;
 		HFPage tempHFP = new HFPage();
 		PageId tempId = this.hpId;
+		PageId t2 = new PageId();
 
 		do{
 			Minibase.BufferManager.pinPage(tempId, tempHFP, false);
@@ -87,13 +88,13 @@ public class HeapFile implements GlobalConst{
 		}while(tempId.pid != -1);
 
         HFPage tempHFPTwo = new HFPage();
-		tempId = Minibase.BufferManager.newPage(tempHFPTwo, 1);
+		t2 = Minibase.BufferManager.newPage(tempHFPTwo, 1);
 		Minibase.BufferManager.pinPage(tempHFP.getCurPage(), tempHFP, false);
-		tempHFP.setNextPage(tempId);
+		tempHFP.setNextPage(t2);
 		Minibase.BufferManager.unpinPage(tempHFP.getCurPage(), false);
-		
+		tempHFPTwo.setPrevPage(tempId);
 		newRid = tempHFPTwo.insertRecord(record);
-		Minibase.BufferManager.unpinPage(tempId, true);
+		Minibase.BufferManager.unpinPage(t2, true);
 		this.RecCnt++;
 		return newRid;
 	}
@@ -106,8 +107,22 @@ public class HeapFile implements GlobalConst{
 	
 	/* Deletes the specified record from the Heap file*/
 	public boolean deleteRecord(RID rid) throws ChainException{
+		HFPage tempHFP = new HFPage();
+		PageId tempId = this.hpId;
 
-		return true;
+		do{
+			Minibase.BufferManager.pinPage(tempId, tempHFP, false);
+			tempHFP.setCurPage(tempId);
+			if(tempId.pid == rid.pageno.pid) {
+				tempHFP.deleteRecord(rid);
+				Minibase.BufferManager.unpinPage(tempId, true);
+				this.RecCnt--;
+				return true;
+			}
+			Minibase.BufferManager.unpinPage(tempId, false);
+			tempId = tempHFP.getNextPage();
+		}while(tempId.pid != -1);
+		return false;
 	}	
 
 	/* */
