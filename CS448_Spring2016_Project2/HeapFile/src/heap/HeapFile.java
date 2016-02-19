@@ -70,7 +70,7 @@ public class HeapFile implements GlobalConst{
 	
 
 	public String getName () {
-		return this.HFPname;
+		return this.HFPName;
 	} 	
 
 	public HFPage getHeapPage() {
@@ -124,8 +124,8 @@ public class HeapFile implements GlobalConst{
 			Minibase.BufferManager.pinPage(tempId, tempHFP, false);
 			tempHFP.setCurPage(tempId);
 			if(tempId.pid == rid.pageno.pid) {
-				if(tempHFP.selectRecord(rid).length == newRecord.getLength()) {
-					System.arraycopy(newRecord.getTupleByteArray(), 0, tempHFP.selectRecord(rid), 0, tempHFP.selectRecord(rid).length);
+				if(tempHFP.getFreeSpace() >= newRecord.getLength()) {
+					tempHFP.updateRecord(rid, newRecord);
 				} else {
 					this.deleteRecord(rid);
 					this.insertRecord(newRecord.getTupleByteArray());
