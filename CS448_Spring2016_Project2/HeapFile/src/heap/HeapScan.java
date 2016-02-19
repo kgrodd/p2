@@ -85,6 +85,11 @@ public class HeapScan{
 				this.currPage = p;
 				this.currRID = currPage.firstRecord();
 				this.currPID = pid;
+				rid = this.currRID;
+				data = currPage.selectRecord(rid);
+				Tuple t = new Tuple(data, 0, data.length);
+				currRID = rid;
+				return t;
 			}
 		}
 		rid = currPage.nextRecord(currRID);
