@@ -41,7 +41,7 @@ public class HeapScan{
 	/* Closes the file scan, releasing any pinned pages. */ 
 	public void close () throws ChainException{
 		while(!this.pinned.isEmpty()){
-			
+			Minibase.BufferManager.unpinPage(this.pinned.pop(), false);
 		}
 	}
 
