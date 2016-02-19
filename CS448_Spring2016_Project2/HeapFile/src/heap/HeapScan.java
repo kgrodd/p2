@@ -22,12 +22,12 @@ public class HeapScan{
 	 * header page and initializing iterator fields.   */
 	protected HeapScan (HeapFile hf){
 		this.hf = hf;
-		this.currPage = hf.hp;
+		this.currPage = hf.getHeapPage();
 		this.pinned = new LinkedList <PageId> ();
-		Minibase.BufferManager.pinPage(hf.hpId, hf.hp, false);
-		currPage.setCurPage(hf.hpId);
+		Minibase.BufferManager.pinPage(hf.getHeapId(), this.currPage, false);
+		currPage.setCurPage(hf.getHeapId());
 		currRID = currPage.firstRecord();
-		this.pinned.add(hf.hpId);
+		this.pinned.push(hf.getHeapId());
 	}
 
 	/* Called by the garbage collector when there are 
@@ -38,13 +38,14 @@ public class HeapScan{
 	}
 	/* Closes the file scan, releasing any pinned pages. */ 
 	public void close () throws ChainException{
-		return;
+		while(!this.pinned.isEmpty()){
+			
+		}
 	}
 
 	/* Returns true if there are more records to scan, false otherwise.  */
 	public boolean hasNext () throws ChainException{
-		
-		return false;
+		return currPage.hasNext(currRID);
 	}	
 
 	/* Gets the next record in the file scan.  */
