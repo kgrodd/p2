@@ -1,0 +1,20 @@
+CS448 Project 2
+Part 2
+Members:
+Tyler Springer: springet@purdue.edu
+Kyle Rodd: kgrodd@purdue.edu
+
+Features
+Our HeapFile structure works in linear time as each method 
+checks the first page, then iterates through the other pages 
+by use of nextPage().  In methods of which we were passed 
+an RID, we were able to know if we could directly move to the
+specified record because RID holds the PageId of the page.
+We proceeded to unpin pages immediately once we were done using 
+them to ensure not to many pages are loaded to main memory. 
+
+Roles
+Tyler: insertRecord(), updateRecord(), printHF(), getMethod
+Kyle: getRecord(), deleteRecord(),  HeapFile()
+We worked together on all of HeapScan
+

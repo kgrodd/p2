@@ -1,0 +1,19 @@
+CS448 Project 2
+Part 1
+Members:
+Tyler Springer: springet@purdue.edu
+Kyle Rodd: kgrodd@purdue.edu
+
+Features
+To make the buffer manager most effective, we made several data
+structures such as Record.java which simply stores two ints 
+but was effectively used to store an array of descriptors 
+used for the buffers. This array words with the same indexes as
+a page array, allowing us to easily maintain information
+easily about every buffer in the pool.Our hashmap is 
+also designed well andeven includes a helpful print statement.  
+
+Roles
+Tyler: Constructor, pinPage(), newPage(), flushPage(), printBufPool, HashMap
+Kyle: unpinPage, freePage(), flushAllPages(), get methods, exceptions
+
