@@ -88,14 +88,16 @@ public class HeapScan{
 				rid = this.currRID;
 				data = currPage.selectRecord(rid);
 				Tuple t = new Tuple(data, 0, data.length);
+				System.out.println("data is : "  + data);
 				currRID = rid;
 				return t;
 			}
 		}
 		rid = currPage.nextRecord(currRID);
 		data = currPage.selectRecord(rid);
+				System.out.println("outdata is : "  + data.length + "    slot no: " + rid.slotno + "   rid.pageno : " + rid.pageno);
 		Tuple t = new Tuple(data, 0, data.length);
-		currRID = rid;
+		this.currRID = rid;
 		return t;
 	}
 }

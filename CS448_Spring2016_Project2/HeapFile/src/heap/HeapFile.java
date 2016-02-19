@@ -194,7 +194,7 @@ public class HeapFile implements GlobalConst{
 	
 	/* Initiates a sequential scan of the heap file */
 	public HeapScan openScan()throws ChainException{
-		return null;
+		return new HeapScan(this);
 	}
 
 

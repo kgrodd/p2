@@ -19,7 +19,6 @@ import chainexception.ChainException;
 
 class HFDriver extends TestDriver implements GlobalConst
 {
-
 	private final static boolean OK = true;
 	private final static boolean FAIL = false;
 
@@ -157,7 +156,9 @@ class HFDriver extends TestDriver implements GlobalConst
 			}
 		}
 		f.printHF();
-/*
+
+		
+
 		// In general, a sequential scan won't be in the same order as the
 		// insertions.  However, we're inserting fixed-length records here, and
 		// in this case the scan must return the insertion order.
@@ -263,7 +264,7 @@ class HFDriver extends TestDriver implements GlobalConst
 				}
 			}	
 		}
-*/
+
 		if ( status == OK )
 			System.out.println ("  Test 1 completed successfully.\n");
 
@@ -287,8 +288,8 @@ class HFDriver extends TestDriver implements GlobalConst
 			System.err.println (" Could not open heapfile");
 			e.printStackTrace();
 		}
-
-		if ( status == OK ) {
+		f.printHF();
+		/*if ( status == OK ) {
 			System.out.println ("  - Delete half the records\n");
 			try {
 				scan = f.openScan();
@@ -299,7 +300,7 @@ class HFDriver extends TestDriver implements GlobalConst
 				e.printStackTrace();
 			}
 		}
-
+*/
 		if ( status == OK ) {
 			int i = 0;
 			Tuple tuple = new Tuple();
