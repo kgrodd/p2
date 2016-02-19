@@ -91,7 +91,8 @@ public class HeapFile implements GlobalConst{
 		do{
 			Minibase.BufferManager.pinPage(tempId, tempHFP, false);
 			tempHFP.setCurPage(tempId);
-			if(tempHFP.getFreeSpace() >= record.length) {
+			System.out.println("tempjsdf;akj;f : "  + tempHFP.getFreeSpace() + "rec length : " + record.length);
+			if(tempHFP.getFreeSpace() > record.length) {
 				newRid = tempHFP.insertRecord(record);
 				Minibase.BufferManager.unpinPage(tempId, true);
 				this.RecCnt++;
@@ -99,7 +100,8 @@ public class HeapFile implements GlobalConst{
 			}
 			Minibase.BufferManager.unpinPage(tempId, false);
 			tempId = tempHFP.getNextPage();
-		}while(tempId.pid != -1);
+
+		} while(tempId.pid != -1);
 
         HFPage tempHFPTwo = new HFPage();
 		t2 = Minibase.BufferManager.newPage(tempHFPTwo, 1);
@@ -110,7 +112,7 @@ public class HeapFile implements GlobalConst{
 		newRid = tempHFPTwo.insertRecord(record);
 		Minibase.BufferManager.unpinPage(t2, true);
 		this.RecCnt++;
-
+System.out.println("new page");
 		return newRid;
 	}
 

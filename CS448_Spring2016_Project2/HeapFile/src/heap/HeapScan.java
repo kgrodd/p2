@@ -18,7 +18,7 @@ public class HeapScan{
 	private PageId currPID;
 	private RID currRID;
 	private LinkedList <PageId> pinned;
-
+	private boolean flag;
 	/*Constructs a file scan by pinning the directoy 
 	 * header page and initializing iterator fields.   */
 	protected HeapScan (HeapFile hf){
@@ -27,9 +27,11 @@ public class HeapScan{
 		this.pinned = new LinkedList <PageId> ();
 		this.currPID = hf.getHeapId();
 		Minibase.BufferManager.pinPage(this.currPID, this.currPage, false);
-		currPage.setCurPage(hf.getHeapId());
-		currRID = currPage.firstRecord();
+		this.currPage.setCurPage(hf.getHeapId());
+System.out.println("first record ; " + currPage.firstRecord());
+		this.currRID = currPage.firstRecord();
 		this.pinned.push(hf.getHeapId());
+		flag = true;
 	}
 
 	/* Called by the garbage collector when there are 
@@ -49,30 +51,33 @@ public class HeapScan{
 	public boolean hasNext () throws ChainException{
 		//return currPage.hasNext(currRID);
 		if(currPage.hasNext(currRID) == false){
+			System.out.println("currp id : " + currPID.pid + "nextid : " + currPage.getNextPage().pid);
 			if(currPage.getNextPage().pid == -1){
 				return false;
 			}
-			else{
-				Minibase.BufferManager.unpinPage(currPID, false);
-				this.pinned.remove(this.currPID);
-				PageId pid = currPage.getNextPage();
-				HFPage p = new HFPage();
-				Minibase.BufferManager.pinPage(pid, p, false);
-				this.pinned.add(pid);
-				this.currPage = p;
-				this.currRID = currPage.firstRecord();
-				this.currPID = pid;
-			}
 		}
+					System.out.println("asdfcurrp id : " + currPID.pid + "nextid : " + currPage.getNextPage().pid);
 		return true;
 	}	
 
 	/* Gets the next record in the file scan.  */
 	public Tuple getNext (RID rid) throws ChainException{
 		byte [] data;
+
+		if(this.flag) {
+		try {
+			data = currPage.selectRecord(this.currRID);
+			Tuple t = new Tuple(data, 0, data.length);
+			this.flag = false;
+return t;
+} catch (NullPointerException e) { e.printStackTrace(); throw new InvalidUpdateException(null,"jd;skf");}
+			
+			
+		}
+			System.out.println("has next rid : " + currRID);
 		if(currPage.hasNext(currRID) == false){
 			if(currPage.getNextPage().pid == -1){
-				//throw exception
+				Minibase.BufferManager.unpinPage(currPID, false);
 				return null;
 			}
 			else{
@@ -95,8 +100,9 @@ public class HeapScan{
 		}
 		rid = currPage.nextRecord(currRID);
 		data = currPage.selectRecord(rid);
-				System.out.println("outdata is : "  + data.length + "    slot no: " + rid.slotno + "   rid.pageno : " + rid.pageno);
+				//System.out.println("outdata is : "  + data.length + "    slot no: " + rid.slotno + "   rid.pageno : " + rid.pageno);
 		Tuple t = new Tuple(data, 0, data.length);
+		System.out.println("tuplelen " +  t.getLength() );
 		this.currRID = rid;
 		return t;
 	}

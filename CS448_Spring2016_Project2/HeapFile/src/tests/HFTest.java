@@ -289,7 +289,7 @@ class HFDriver extends TestDriver implements GlobalConst
 			e.printStackTrace();
 		}
 		f.printHF();
-		/*if ( status == OK ) {
+		if ( status == OK ) {
 			System.out.println ("  - Delete half the records\n");
 			try {
 				scan = f.openScan();
@@ -300,7 +300,7 @@ class HFDriver extends TestDriver implements GlobalConst
 				e.printStackTrace();
 			}
 		}
-*/
+f.printHF();
 		if ( status == OK ) {
 			int i = 0;
 			Tuple tuple = new Tuple();
@@ -787,7 +787,7 @@ class HFDriver extends TestDriver implements GlobalConst
 		boolean _passAll = OK;
 
 		if (!test1()) { _passAll = FAIL; }
-		//if (!test2()) { _passAll = FAIL; }
+		if (!test2()) { _passAll = FAIL; }
 		//if (!test3()) { _passAll = FAIL; }
 		//if (!test4()) { _passAll = FAIL; }
 		//if (!test5()) { _passAll = FAIL; }

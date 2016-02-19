@@ -10,9 +10,8 @@ public class Tuple{
 	private byte [] data;
 	private int useless;
 	private int length;	
-
 	
-	public Tuple(byte [] data, int useless, int Length){
+	public Tuple(byte [] data, int useless, int length){
 		this.data = data;
 		this.useless = useless;
 		this.length = length;
@@ -23,13 +22,10 @@ public class Tuple{
 	}
 	
 	public int getLength(){
-		int len = this.length;
-		return len;
+		return this.length;
 	}
 	
 	public byte [] getTupleByteArray(){
 		return this.data;
 	}
-		
-	
 }
