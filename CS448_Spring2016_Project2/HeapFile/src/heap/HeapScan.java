@@ -54,9 +54,11 @@ public class HeapScan{
 			}
 			else{
 				Minibase.BufferManager.unpinPage(currPID, false);
+				this.pinned.remove(this.currPID);
 				PageId pid = currPage.getNextPage();
 				HFPage p = new HFPage();
 				Minibase.BufferManager.pinPage(pid, p, true);
+				this.pinned.add(pid);
 				this.currPage = p;
 				this.currRID = currPage.firstRecord();
 				this.currPID = pid;
@@ -75,9 +77,11 @@ public class HeapScan{
 			}
 			else{
 				Minibase.BufferManager.unpinPage(currPID, false);
+				this.pinned.remove(currPID);
 				PageId pid = currPage.getNextPage();
 				HFPage p = new HFPage();
 				Minibase.BufferManager.pinPage(pid, p, true);
+				this.pinned.add(pid);
 				this.currPage = p;
 				this.currRID = currPage.firstRecord();
 				this.currPID = pid;
