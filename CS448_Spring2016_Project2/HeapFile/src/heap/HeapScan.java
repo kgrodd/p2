@@ -68,9 +68,20 @@ public class HeapScan{
 	/* Gets the next record in the file scan.  */
 	public Tuple getNext (RID rid) throws ChainException{
 		byte [] data;
-		if(currPage.nextRecord(currRID) == null){
-		//illegal argument exception
-			return null;
+		if(currPage.hasNext(currRID) == false){
+			if(currPage.getNextPage().pid == -1){
+				//throw exception
+				return null;
+			}
+			else{
+				Minibase.BufferManager.unpinPage(currPID, false);
+				PageId pid = currPage.getNextPage();
+				HFPage p = new HFPage();
+				Minibase.BufferManager.pinPage(pid, p, true);
+				this.currPage = p;
+				this.currRID = currPage.firstRecord();
+				this.currPID = pid;
+			}
 		}
 		rid = currPage.nextRecord(currRID);
 		data = currPage.selectRecord(rid);
