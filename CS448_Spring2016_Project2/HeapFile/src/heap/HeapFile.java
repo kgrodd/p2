@@ -14,6 +14,7 @@ import global.Page;
 import global.PageId;
 import global.RID;
 
+import java.lang.System;
 import diskmgr.DiskMgr;
 import bufmgr.BufMgr;
 
@@ -67,6 +68,19 @@ public class HeapFile implements GlobalConst{
 		}
 	}
 	
+
+	public String getName () {
+		return this.HFPname;
+	} 	
+
+	public HFPage getHeapPage() {
+		return this.hp;
+	}
+
+	public PageId getHeapId() {
+		return this.hpId;
+	}
+
 		/*Inserts a new record into the flie and returns its RID*/
 	public RID insertRecord(byte[] record)throws ChainException{
 		RID newRid = null;
@@ -96,13 +110,36 @@ public class HeapFile implements GlobalConst{
 		newRid = tempHFPTwo.insertRecord(record);
 		Minibase.BufferManager.unpinPage(t2, true);
 		this.RecCnt++;
+
 		return newRid;
 	}
 
 	/*Updates the specified record in the heap file */ 
 	public boolean updateRecord(RID rid, Tuple newRecord)throws ChainException{
+		HFPage tempHFP = new HFPage();
+		PageId tempId = this.hpId;
+		boolean flag = true;
 
-		return true;
+		do{
+			Minibase.BufferManager.pinPage(tempId, tempHFP, false);
+			tempHFP.setCurPage(tempId);
+			if(tempId.pid == rid.pageno.pid) {
+				if(tempHFP.selectRecord(rid).length == newRecord.getLength()) {
+					System.arraycopy(newRecord.getTupleByteArray(), 0, tempHFP.selectRecord(rid), 0, tempHFP.selectRecord(rid).length);
+				} else {
+					this.deleteRecord(rid);
+					this.insertRecord(newRecord.getTupleByteArray());
+				}
+				Minibase.BufferManager.unpinPage(tempId, true);
+			}
+			Minibase.BufferManager.unpinPage(tempId, false);
+			tempId = tempHFP.getNextPage();
+		}while(tempId.pid != -1);
+		
+		if(flag == false)
+			throw new InvalidUpdateException(null, "illegal argument in update");
+
+		return flag;
 	}
 	
 	/* Deletes the specified record from the Heap file*/
@@ -122,11 +159,28 @@ public class HeapFile implements GlobalConst{
 			Minibase.BufferManager.unpinPage(tempId, false);
 			tempId = tempHFP.getNextPage();
 		}while(tempId.pid != -1);
-		return false;
+		
+
+		throw new InvalidUpdateException(null, "illegal argument in delete");
 	}	
 
 	/* */
 	public Tuple getRecord(RID rid)throws ChainException{
+		HFPage tempHFP = new HFPage();
+		PageId tempId = this.hpId;
+
+		do{
+			Minibase.BufferManager.pinPage(tempId, tempHFP, false);
+			tempHFP.setCurPage(tempId);
+			if(tempId.pid == rid.pageno.pid) {
+				byte [] data = tempHFP.selectRecord(rid);
+				Tuple T = new Tuple(data, 0, data.length);
+				Minibase.BufferManager.unpinPage(tempId, true);
+				return T;
+			}
+			Minibase.BufferManager.unpinPage(tempId, false);
+			tempId = tempHFP.getNextPage();
+		}while(tempId.pid != -1);
 
 		return null;
 	}

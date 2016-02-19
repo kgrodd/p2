@@ -23,10 +23,13 @@ public class Tuple{
 	}
 	
 	public int getLength(){
-		return this.length;
+		int len = this.length;
+		return len;
 	}
 	
 	public byte [] getTupleByteArray(){
 		return this.data;
 	}
+		
+	
 }
